@@ -111,7 +111,7 @@ export class WhopService {
   }): WhopProduct {
     console.log('📝 [STUB] Creating product:', data);
     return {
-      id: `whop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `whop_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: data.name,
       description: data.description,
       status: 'draft',

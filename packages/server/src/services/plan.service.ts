@@ -101,21 +101,22 @@ export class PlanService {
           success: true,
           data: result,
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         hasError = true;
         results.push({
           actionType: action.type,
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
         
         await auditService.log({
           action: 'EXECUTE_PLAN_ACTION_FAILED',
           planId,
           productId: plan.productId || undefined,
-          details: JSON.stringify({ action, error: error.message }),
+          details: JSON.stringify({ action, error: errorMessage }),
           status: 'failed',
-          error: error.message,
+          error: errorMessage,
         });
 
         // Stop execution on first error

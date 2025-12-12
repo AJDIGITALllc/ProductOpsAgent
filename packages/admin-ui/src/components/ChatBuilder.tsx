@@ -35,14 +35,19 @@ export default function ChatBuilder({ onPlanCreated }: ChatBuilderProps) {
     }
   };
 
+  // Placeholder for product ID that will be created during execution
+  const PLACEHOLDER_PRODUCT_ID = '__CREATED_PRODUCT_ID__';
+
+  // Regex pattern to extract product name from user input
+  // Matches: "create...product...(called|named) <name>"
+  const PRODUCT_NAME_PATTERN = /create.*?product.*?(?:called|named)\s+["']?([^"',]+)["']?/i;
+
   const parseUserInput = (text: string): any[] => {
     const actions: any[] = [];
     const lowerText = text.toLowerCase();
 
     // Extract product name
-    const nameMatch = text.match(
-      /create.*?product.*?(?:called|named)\s+["']?([^"',]+)["']?/i
-    );
+    const nameMatch = text.match(PRODUCT_NAME_PATTERN);
     const productName = nameMatch ? nameMatch[1].trim() : 'New Product';
 
     // Check if using a template
@@ -77,7 +82,7 @@ export default function ChatBuilder({ onPlanCreated }: ChatBuilderProps) {
       actions.push({
         type: 'set_pricing',
         payload: {
-          productId: '__CREATED_PRODUCT_ID__',
+          productId: PLACEHOLDER_PRODUCT_ID,
           pricing: isRecurring
             ? {
                 type: 'recurring',
@@ -99,7 +104,7 @@ export default function ChatBuilder({ onPlanCreated }: ChatBuilderProps) {
         actions.push({
           type: 'add_faq',
           payload: {
-            productId: '__CREATED_PRODUCT_ID__',
+            productId: PLACEHOLDER_PRODUCT_ID,
             faq: {
               question: `What about ${faqMatch[1].trim()}?`,
               answer: `Information about ${faqMatch[1].trim()} will be provided.`,
@@ -114,7 +119,7 @@ export default function ChatBuilder({ onPlanCreated }: ChatBuilderProps) {
       actions.push({
         type: 'publish',
         payload: {
-          productId: '__CREATED_PRODUCT_ID__',
+          productId: PLACEHOLDER_PRODUCT_ID,
         },
       });
     }
