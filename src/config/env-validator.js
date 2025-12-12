@@ -49,6 +49,13 @@ function validateEnvironment() {
   const nodeEnv = process.env.NODE_ENV || 'development';
   console.log(`✓ Running in ${nodeEnv} environment`);
   
+  // Check for cookie secret in production
+  if (nodeEnv === 'production' && !process.env.COOKIE_SECRET) {
+    errors.push('COOKIE_SECRET is required in production environment');
+  } else if (process.env.COOKIE_SECRET) {
+    console.log('✓ Cookie secret configured');
+  }
+  
   // Check execution disabled flag
   if (process.env.EXECUTION_DISABLED === 'true') {
     console.warn('⚠️  EXECUTION_DISABLED is set - all execution actions are disabled');

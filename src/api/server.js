@@ -19,6 +19,13 @@ const { createWebhookRouter } = require('./routes/webhook');
 
 function createApp() {
   const app = express();
+  const env = process.env.NODE_ENV || 'development';
+  
+  // Validate cookie secret in production
+  const cookieSecret = process.env.COOKIE_SECRET;
+  if (env === 'production' && !cookieSecret) {
+    throw new Error('COOKIE_SECRET is required in production environment');
+  }
   
   // Security headers (including HSTS)
   app.use(helmet({
@@ -45,7 +52,9 @@ function createApp() {
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   
   // Cookie parsing with secure settings
-  app.use(cookieParser(process.env.COOKIE_SECRET || 'change-me-in-production'));
+  // Use development fallback only in non-production
+  const secret = cookieSecret || (env === 'development' ? 'dev-secret-change-in-prod' : '');
+  app.use(cookieParser(secret));
   
   // Request logging middleware
   app.use((req, res, next) => {
