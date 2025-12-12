@@ -1,0 +1,68 @@
+// Prisma schema for ProductOpsAgent MVP
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("user") // "admin" or "user"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Run {
+  id            String    @id @default(cuid())
+  status        String    // planning, planned, approved, executing, completed, failed
+  userPrompt    String
+  actionPlan    String?   // JSON string of ActionPlan
+  approvalToken String?
+  results       String    @default("[]") // JSON string of ActionResult[]
+  actorId       String?   // Optional actor ID (not enforced as foreign key for MVP)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  completedAt   DateTime?
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  whopProductId  String?  @unique // External Whop ID
+  name           String
+  description    String?  // JSON string of DescriptionBlock[]
+  pricing        String?  // JSON string of PricingConfig
+  faqs           String?  // JSON string of FAQ[]
+  status         String   @default("draft") // draft or published
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      String
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  actionPlan  String   // JSON string of ActionPlan
+  createdAt   DateTime @default(now())
+}
+
+model Action {
+  id             String   @id @default(cuid())
+  runId          String
+  actionType     String
+  params         String   // JSON string
+  idempotencyKey String   @unique
+  order          Int
+  status         String   @default("pending") // pending, executing, completed, failed, skipped
+  result         String?  // JSON string
+  error          String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+}
