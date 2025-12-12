@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Action Plan submitted by user or AI
+model Plan {
+  id          String   @id @default(uuid())
+  planId      String   @unique // Business identifier
+  userId      String
+  status      String   // DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, EXECUTING, COMPLETED, FAILED
+  planJson    String   // JSON string of the plan
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  actions     Action[]
+  approvals   Approval[]
+  executions  Execution[]
+  auditLogs   AuditLog[]
+}
+
+// Individual action in a plan
+model Action {
+  id          String   @id @default(uuid())
+  planId      String
+  actionIndex Int
+  actionType  String   // CREATE_PRODUCT, UPDATE_PRODUCT, ADD_FAQ, etc.
+  payload     String   // JSON string
+  status      String   // PENDING, COMPLETED, FAILED, SKIPPED
+  result      String?  // JSON string of result
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  plan        Plan     @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  
+  @@unique([planId, actionIndex])
+}
+
+// Approval records
+model Approval {
+  id          String   @id @default(uuid())
+  planId      String
+  userId      String
+  decision    String   // APPROVED, REJECTED
+  reason      String?
+  createdAt   DateTime @default(now())
+  
+  plan        Plan     @relation(fields: [planId], references: [planId], onDelete: Cascade)
+}
+
+// Execution records
+model Execution {
+  id              String   @id @default(uuid())
+  planId          String
+  status          String   // RUNNING, COMPLETED, FAILED, PARTIAL
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  failedStepIndex Int?
+  resultJson      String?  // JSON string
+  errorMessage    String?
+  
+  plan            Plan     @relation(fields: [planId], references: [planId], onDelete: Cascade)
+}
+
+// Audit log for all operations
+model AuditLog {
+  id          String   @id @default(uuid())
+  planId      String?
+  userId      String?
+  action      String   // PLAN_CREATED, PLAN_APPROVED, ACTION_EXECUTED, etc.
+  details     String   // JSON string
+  ipAddress   String?
+  correlationId String?
+  createdAt   DateTime @default(now())
+  
+  plan        Plan?    @relation(fields: [planId], references: [planId], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([correlationId])
+}
+
+// Idempotency keys for exactly-once execution
+model IdempotencyKey {
+  id          String   @id @default(uuid())
+  key         String   @unique // Format: planId:actionIndex:actionType:payloadHash
+  planId      String
+  actionIndex Int
+  status      String   // PROCESSING, COMPLETED, FAILED
+  resultJson  String?  // Stored result
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([planId])
+}
+
+// Webhook delivery queue
+model WebhookDelivery {
+  id            String   @id @default(uuid())
+  planId        String
+  eventType     String   // PLAN_COMPLETED, ACTION_EXECUTED, etc.
+  payload       String   // JSON string
+  url           String
+  status        String   // PENDING, DELIVERED, FAILED, DEAD
+  attempts      Int      @default(0)
+  maxAttempts   Int      @default(5)
+  nextRetryAt   DateTime?
+  lastAttemptAt DateTime?
+  deliveredAt   DateTime?
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  attempts_history WebhookAttempt[]
+  
+  @@index([status, nextRetryAt])
+}
+
+// Webhook delivery attempt history
+model WebhookAttempt {
+  id                String   @id @default(uuid())
+  webhookDeliveryId String
+  attemptNumber     Int
+  status            String   // SUCCESS, FAILED
+  httpStatus        Int?
+  errorMessage      String?
+  createdAt         DateTime @default(now())
+  
+  webhookDelivery   WebhookDelivery @relation(fields: [webhookDeliveryId], references: [id], onDelete: Cascade)
+}
+
+// Rate limiting counters
+model RateLimit {
+  id          String   @id @default(uuid())
+  identifier  String   // userId or IP address
+  endpoint    String
+  count       Int      @default(1)
+  windowStart DateTime @default(now())
+  expiresAt   DateTime
+  
+  @@unique([identifier, endpoint, windowStart])
+  @@index([identifier, endpoint, expiresAt])
+}

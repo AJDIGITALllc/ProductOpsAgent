@@ -1,0 +1,175 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.banner {
+  padding: 10px 20px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.banner-real {
+  background-color: #4caf50;
+  color: white;
+}
+
+.banner-stub {
+  background-color: #ff9800;
+  color: white;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.code-block {
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  font-family: monospace;
+  font-size: 14px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.copy-button:hover {
+  background-color: #1976d2;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-completed {
+  background-color: #4caf50;
+  color: white;
+}
+
+.status-failed {
+  background-color: #f44336;
+  color: white;
+}
+
+.status-running {
+  background-color: #2196f3;
+  color: white;
+}
+
+.status-pending {
+  background-color: #ff9800;
+  color: white;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.error {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.webhook-list {
+  margin-top: 15px;
+}
+
+.webhook-item {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.webhook-item h4 {
+  margin-bottom: 5px;
+}
+
+.webhook-item p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+input, button {
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+button {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: #1976d2;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
