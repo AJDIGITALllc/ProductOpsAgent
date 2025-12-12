@@ -10,7 +10,7 @@ import executeRouter from './routes/execute';
 import adminRouter from './routes/admin';
 import { startWebhookWorker } from './workers/webhookWorker';
 
-// Load environment variables
+// Load environment variables - dotenv will look in current directory
 dotenv.config();
 
 const app = express();
