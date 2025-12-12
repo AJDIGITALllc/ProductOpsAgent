@@ -14,7 +14,11 @@ const {
 } = require('./telemetry-service');
 const { getConnector } = require('../connectors/connector-factory');
 
-// In-memory plan storage (would be DB in production)
+// In-memory plan storage (TEMPORARY - replace with persistent storage in production)
+// TODO: For production, use Redis, PostgreSQL, or DynamoDB for:
+//   - Plan persistence across service restarts
+//   - Sharing plans across multiple service instances
+//   - Audit trail and compliance requirements
 const plans = new Map();
 
 /**

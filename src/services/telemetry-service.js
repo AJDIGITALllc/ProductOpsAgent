@@ -39,12 +39,14 @@ class TelemetryService {
       }
     };
     
+    this.resetInterval = null;
+    
     // Reset daily counters at midnight
     this.startDailyReset();
   }
   
   startDailyReset() {
-    setInterval(() => {
+    this.resetInterval = setInterval(() => {
       const today = new Date().toISOString().split('T')[0];
       
       if (this.metrics.planner.lastReset !== today) {
@@ -65,6 +67,15 @@ class TelemetryService {
         this.metrics.images.lastReset = today;
       }
     }, 60000); // Check every minute
+  }
+  
+  // Cleanup method for graceful shutdown
+  cleanup() {
+    if (this.resetInterval) {
+      clearInterval(this.resetInterval);
+      this.resetInterval = null;
+      console.log('🧹 Telemetry service cleanup complete');
+    }
   }
   
   // Record planner call
@@ -182,5 +193,6 @@ module.exports = {
   checkExecutionEnabled: () => telemetryService.checkExecutionEnabled(),
   recordImageGeneration: () => telemetryService.recordImageGeneration(),
   checkImageQuota: () => telemetryService.checkImageQuota(),
-  getTelemetry: () => telemetryService.getTelemetry()
+  getTelemetry: () => telemetryService.getTelemetry(),
+  cleanup: () => telemetryService.cleanup()
 };

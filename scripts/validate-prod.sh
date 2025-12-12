@@ -54,26 +54,51 @@ function check_health() {
     exit 1
   fi
   
-  # Parse JSON response (basic parsing, would use jq in production)
-  if echo "$body" | grep -q '"status":"healthy"'; then
-    print_success "Health check passed"
+  # Check if jq is available for JSON parsing
+  if command -v jq >/dev/null 2>&1; then
+    # Use jq for proper JSON parsing
+    local health_status=$(echo "$body" | jq -r '.status')
+    local execution_enabled=$(echo "$body" | jq -r '.executionEnabled')
+    local mode=$(echo "$body" | jq -r '.mode')
+    
+    if [ "$health_status" = "healthy" ]; then
+      print_success "Health check passed"
+    else
+      print_error "Health check returned unhealthy status: $health_status"
+      echo "Response: $body"
+      exit 1
+    fi
+    
+    if [ "$execution_enabled" = "false" ]; then
+      print_warning "Execution is disabled (EXECUTION_DISABLED=true)"
+    else
+      print_success "Execution is enabled"
+    fi
+    
+    if [ ! -z "$mode" ] && [ "$mode" != "null" ]; then
+      print_success "Planner mode: $mode"
+    fi
   else
-    print_error "Health check returned unhealthy status"
-    echo "Response: $body"
-    exit 1
-  fi
-  
-  # Check execution enabled
-  if echo "$body" | grep -q '"executionEnabled":false'; then
-    print_warning "Execution is disabled (EXECUTION_DISABLED=true)"
-  else
-    print_success "Execution is enabled"
-  fi
-  
-  # Check planner mode
-  local mode=$(echo "$body" | grep -o '"mode":"[^"]*"' | cut -d'"' -f4)
-  if [ ! -z "$mode" ]; then
-    print_success "Planner mode: $mode"
+    # Fallback to grep if jq not available (less reliable)
+    print_warning "jq not found - using basic grep parsing (less reliable)"
+    if echo "$body" | grep -q '"status":"healthy"'; then
+      print_success "Health check passed"
+    else
+      print_error "Health check returned unhealthy status"
+      echo "Response: $body"
+      exit 1
+    fi
+    
+    if echo "$body" | grep -q '"executionEnabled":false'; then
+      print_warning "Execution is disabled (EXECUTION_DISABLED=true)"
+    else
+      print_success "Execution is enabled"
+    fi
+    
+    local mode=$(echo "$body" | grep -o '"mode":"[^"]*"' | cut -d'"' -f4)
+    if [ ! -z "$mode" ]; then
+      print_success "Planner mode: $mode"
+    fi
   fi
   
   echo ""
@@ -102,10 +127,15 @@ function test_planner_dryrun() {
     exit 1
   fi
   
-  # Extract plan ID (basic parsing)
-  local plan_id=$(echo "$body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+  # Extract plan ID
+  local plan_id
+  if command -v jq >/dev/null 2>&1; then
+    plan_id=$(echo "$body" | jq -r '.plan.id')
+  else
+    plan_id=$(echo "$body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+  fi
   
-  if [ -z "$plan_id" ]; then
+  if [ -z "$plan_id" ] || [ "$plan_id" = "null" ]; then
     print_error "Could not extract plan ID from response"
     echo "Response: $body"
     exit 1
@@ -166,12 +196,23 @@ function test_execute_draft() {
   fi
   
   # Check for dry-run confirmation
-  if echo "$body" | grep -q '"dryRun":true'; then
-    print_success "Dry-run execution completed"
+  if command -v jq >/dev/null 2>&1; then
+    local dry_run=$(echo "$body" | jq -r '.result.dryRun')
+    if [ "$dry_run" = "true" ]; then
+      print_success "Dry-run execution completed"
+    else
+      print_error "Dry-run flag not true in response"
+      echo "Response: $body"
+      exit 1
+    fi
   else
-    print_error "Dry-run flag not found in response"
-    echo "Response: $body"
-    exit 1
+    if echo "$body" | grep -q '"dryRun":true'; then
+      print_success "Dry-run execution completed"
+    else
+      print_error "Dry-run flag not found in response"
+      echo "Response: $body"
+      exit 1
+    fi
   fi
   
   echo ""
@@ -194,22 +235,46 @@ function verify_metrics() {
   print_success "Metrics endpoint accessible"
   
   # Check for expected metrics structure
-  if echo "$body" | grep -q '"planner"'; then
-    print_success "Planner metrics present"
+  if command -v jq >/dev/null 2>&1; then
+    local planner=$(echo "$body" | jq -r '.metrics.planner')
+    local execution=$(echo "$body" | jq -r '.metrics.execution')
+    local quotas=$(echo "$body" | jq -r '.metrics.quotas')
+    
+    if [ "$planner" != "null" ]; then
+      print_success "Planner metrics present"
+    else
+      print_warning "Planner metrics not found"
+    fi
+    
+    if [ "$execution" != "null" ]; then
+      print_success "Execution metrics present"
+    else
+      print_warning "Execution metrics not found"
+    fi
+    
+    if [ "$quotas" != "null" ]; then
+      print_success "Quota metrics present"
+    else
+      print_warning "Quota metrics not found"
+    fi
   else
-    print_warning "Planner metrics not found"
-  fi
-  
-  if echo "$body" | grep -q '"execution"'; then
-    print_success "Execution metrics present"
-  else
-    print_warning "Execution metrics not found"
-  fi
-  
-  if echo "$body" | grep -q '"quotas"'; then
-    print_success "Quota metrics present"
-  else
-    print_warning "Quota metrics not found"
+    if echo "$body" | grep -q '"planner"'; then
+      print_success "Planner metrics present"
+    else
+      print_warning "Planner metrics not found"
+    fi
+    
+    if echo "$body" | grep -q '"execution"'; then
+      print_success "Execution metrics present"
+    else
+      print_warning "Execution metrics not found"
+    fi
+    
+    if echo "$body" | grep -q '"quotas"'; then
+      print_success "Quota metrics present"
+    else
+      print_warning "Quota metrics not found"
+    fi
   fi
   
   echo ""
