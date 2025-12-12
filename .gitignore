@@ -137,3 +137,6 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+packages/server/.env
+test-integration.sh
+test-failure-handling.sh
