@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
     });
 
     // Parse config for each template
-    const formatted = templates.map((template) => ({
+    const formatted = templates.map((template: any) => ({
       ...template,
       config: JSON.parse(template.config),
     }));

@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
     });
 
     // Parse JSON fields
-    const formatted = products.map((product) => ({
+    const formatted = products.map((product: any) => ({
       ...product,
       pricing: product.pricing ? JSON.parse(product.pricing) : null,
       descriptionBlocks: product.descriptionBlocks

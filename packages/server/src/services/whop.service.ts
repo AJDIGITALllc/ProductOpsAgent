@@ -1,4 +1,8 @@
+import dotenv from 'dotenv';
 import { WhopProduct } from '../types';
+
+// Load environment variables before service initialization
+dotenv.config();
 
 export class WhopService {
   private apiKey: string | undefined;
