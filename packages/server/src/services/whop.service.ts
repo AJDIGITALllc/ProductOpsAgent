@@ -37,7 +37,7 @@ export class WhopService {
       throw new Error(`Whop API error: ${response.statusText}`);
     }
 
-    return response.json();
+    return response.json() as Promise<WhopProduct>;
   }
 
   async updateProduct(
@@ -61,7 +61,7 @@ export class WhopService {
       throw new Error(`Whop API error: ${response.statusText}`);
     }
 
-    return response.json();
+    return response.json() as Promise<WhopProduct>;
   }
 
   async publishProduct(productId: string): Promise<WhopProduct> {
@@ -81,7 +81,7 @@ export class WhopService {
       throw new Error(`Whop API error: ${response.statusText}`);
     }
 
-    return response.json();
+    return response.json() as Promise<WhopProduct>;
   }
 
   async getProduct(productId: string): Promise<WhopProduct> {
@@ -101,7 +101,7 @@ export class WhopService {
       throw new Error(`Whop API error: ${response.statusText}`);
     }
 
-    return response.json();
+    return response.json() as Promise<WhopProduct>;
   }
 
   // Stub implementations

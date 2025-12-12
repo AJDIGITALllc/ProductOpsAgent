@@ -61,12 +61,13 @@ export default function PlanApproval({
         return `Create draft product: "${action.payload.name}"${
           action.payload.templateId ? ' (from template)' : ''
         }`;
-      case 'set_pricing':
+      case 'set_pricing': {
         const pricing = action.payload.pricing;
         const amount = (pricing.amount / 100).toFixed(2);
         return `Set pricing: $${amount} (${pricing.type}${
           pricing.interval ? ` / ${pricing.interval}` : ''
         })`;
+      }
       case 'add_description_block':
         return `Add description block: ${action.payload.block.type}`;
       case 'add_faq':

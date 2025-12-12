@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ChatBuilder from '@/components/ChatBuilder';
 import ProductList from '@/components/ProductList';
 import PlanApproval from '@/components/PlanApproval';
