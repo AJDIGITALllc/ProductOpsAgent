@@ -33,7 +33,7 @@ export async function sendWebhook(event, data) {
         'Content-Type': 'application/json',
         'X-Webhook-Event': event
       },
-      timeout: 5000 // 5 second timeout
+      timeout: config.webhookTimeout
     }).catch(error => {
       // Log failure but don't throw
       console.error(`[WEBHOOK] Failed to send ${event}:`, error.message);

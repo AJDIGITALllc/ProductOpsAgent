@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+// Helper to convert 0-indexed step to 1-indexed display
+const toDisplayIndex = (index) => index + 1;
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [user, setUser] = useState(null);
@@ -190,7 +193,7 @@ function App() {
       if (data.result.status === 'EXECUTED') {
         setSuccess('Plan executed successfully!');
       } else if (data.result.status === 'FAILED') {
-        setError(`Plan execution failed at step ${data.result.failedStepIndex + 1}`);
+        setError(`Plan execution failed at step ${toDisplayIndex(data.result.failedStepIndex)}`);
       }
     } catch (err) {
       setError(err.message);
@@ -474,7 +477,7 @@ function App() {
           {executionResult.status === 'FAILED' && (
             <div className="failure-details">
               <h4>❌ Execution Failed</h4>
-              <p><strong>Failed at step:</strong> {executionResult.failedStepIndex + 1}</p>
+              <p><strong>Failed at step:</strong> {toDisplayIndex(executionResult.failedStepIndex)}</p>
               <p><strong>Error:</strong> {executionResult.errorMessage}</p>
               <p><strong>Completed steps:</strong> {executionResult.completedSteps.length}</p>
             </div>

@@ -26,10 +26,11 @@ function validateEnv() {
 // Config object
 export const config = {
   port: process.env.PORT || 3001,
-  jwtSecret: process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex'),
+  jwtSecret: process.env.JWT_SECRET,
   whopApiKey: process.env.WHOP_API_KEY || null,
   webhookUrl: process.env.WEBHOOK_URL || null,
   nodeEnv: process.env.NODE_ENV || 'development',
+  webhookTimeout: parseInt(process.env.WEBHOOK_TIMEOUT_MS || '5000'),
   
   // Rate limiting
   rateLimit: {
