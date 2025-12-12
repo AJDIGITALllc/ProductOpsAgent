@@ -2,9 +2,7 @@ import {
   PricingConfigSchema,
   ActionPlanSchema,
   validateActionParams,
-  ActionSchema,
   CreateProductParamsSchema,
-  SetPricingParamsSchema,
 } from './validators';
 
 describe('PricingConfigSchema', () => {

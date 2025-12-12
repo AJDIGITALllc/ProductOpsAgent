@@ -141,6 +141,5 @@ vite.config.ts.timestamp-*
 # SQLite database files
 *.db
 *.db-journal
-
-# Prisma migrations lock
-prisma/migrations/migration_lock.toml
+*.db-shm
+*.db-wal
