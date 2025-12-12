@@ -1,0 +1,33 @@
+{
+  "name": "productopsagent",
+  "version": "1.0.0",
+  "description": "A chat UI where the user says: Create a new product called X, price it at Y, make it recurring, add FAQs, and an agent executes those actions through the Whop API with guardrails, logging, and rollback.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "validate": "./scripts/validate-prod.sh",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "whop",
+    "commerce",
+    "automation",
+    "product-operations"
+  ],
+  "author": "AJ Digital LLC",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "cookie-parser": "^1.4.6",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
