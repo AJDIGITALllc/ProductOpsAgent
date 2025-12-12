@@ -1,0 +1,16 @@
+{
+  "name": "product-ops-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A chat UI where the user says: Create a new product called X, price it at Y, make it recurring, add FAQs, and an agent executes those actions through the Whop API",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=packages/server",
+    "dev:ui": "npm run dev --workspace=packages/ui",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  }
+}
