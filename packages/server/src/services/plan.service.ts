@@ -6,7 +6,7 @@ import { idempotencyService } from './idempotency.service';
 
 export class PlanService {
   // Create a new plan (PLAN phase)
-  async createPlan(actions: Action[], productId?: string): Promise<any> {
+  async createPlan(actions: Action[], productId?: string, userId?: string): Promise<any> {
     // Validate all actions
     actions.forEach((action) => actionService.validateAction(action));
 
@@ -15,6 +15,7 @@ export class PlanService {
         productId,
         actions: JSON.stringify(actions),
         status: 'pending',
+        createdBy: userId || 'system',
       },
     });
 
@@ -24,6 +25,7 @@ export class PlanService {
       productId,
       details: JSON.stringify({ actionCount: actions.length }),
       status: 'success',
+      userId: userId || 'system',
     });
 
     return plan;

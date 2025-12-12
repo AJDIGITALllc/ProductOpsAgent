@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth.routes';
 import plansRoutes from './routes/plans.routes';
 import productsRoutes from './routes/products.routes';
 import templatesRoutes from './routes/templates.routes';
@@ -33,6 +34,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/templates', templatesRoutes);

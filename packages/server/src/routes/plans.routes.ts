@@ -1,12 +1,18 @@
 import { Router } from 'express';
 import { planService } from '../services/plan.service';
 import { z } from 'zod';
-import { ActionSchema } from '../types/actions';
+import { ActionSchema, ActionType } from '../types/actions';
+import { requireAuth, requireOwner } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// POST /api/plans - Create a new plan
-router.post('/', async (req, res) => {
+// Helper to check if plan contains publish action
+function containsPublishAction(actions: any[]): boolean {
+  return actions.some((action) => action.type === ActionType.PUBLISH);
+}
+
+// POST /api/plans - Create a new plan (requires auth)
+router.post('/', requireAuth, async (req, res) => {
   try {
     const schema = z.object({
       actions: z.array(ActionSchema),
@@ -14,7 +20,15 @@ router.post('/', async (req, res) => {
     });
 
     const { actions, productId } = schema.parse(req.body);
-    const plan = await planService.createPlan(actions, productId);
+    
+    // Check if plan contains publish action and user has owner role
+    if (containsPublishAction(actions) && req.user?.role !== 'owner') {
+      return res.status(403).json({
+        error: 'Only owners can create plans with publish actions',
+      });
+    }
+    
+    const plan = await planService.createPlan(actions, productId, req.user?.userId);
 
     res.status(201).json(plan);
   } catch (error: any) {
@@ -23,11 +37,24 @@ router.post('/', async (req, res) => {
   }
 });
 
-// POST /api/plans/:id/approve - Approve a plan
-router.post('/:id/approve', async (req, res) => {
+// POST /api/plans/:id/approve - Approve a plan (requires auth)
+router.post('/:id/approve', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { approvedBy } = req.body;
+    const approvedBy = req.user?.email || 'unknown';
+
+    // Get plan to check if it contains publish action
+    const existingPlan = await planService.getPlan(id);
+    if (!existingPlan) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+    
+    const actions = JSON.parse(existingPlan.actions);
+    if (containsPublishAction(actions) && req.user?.role !== 'owner') {
+      return res.status(403).json({
+        error: 'Only owners can approve plans with publish actions',
+      });
+    }
 
     const plan = await planService.approvePlan(id, approvedBy);
     res.json(plan);
@@ -37,8 +64,8 @@ router.post('/:id/approve', async (req, res) => {
   }
 });
 
-// POST /api/plans/:id/execute - Execute an approved plan
-router.post('/:id/execute', async (req, res) => {
+// POST /api/plans/:id/execute - Execute an approved plan (requires auth)
+router.post('/:id/execute', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const idempotencyKey = req.headers['idempotency-key'] as string;
@@ -51,8 +78,8 @@ router.post('/:id/execute', async (req, res) => {
   }
 });
 
-// POST /api/plans/:id/cancel - Cancel a pending plan
-router.post('/:id/cancel', async (req, res) => {
+// POST /api/plans/:id/cancel - Cancel a pending plan (requires auth)
+router.post('/:id/cancel', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const plan = await planService.cancelPlan(id);
