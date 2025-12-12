@@ -24,7 +24,12 @@ app.use((req, res, next) => {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const { whopClient } = require('./integrations/whop/WhopClient');
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    whopApiMode: whopClient.isStubMode() ? 'stub' : 'real',
+  });
 });
 
 // API routes

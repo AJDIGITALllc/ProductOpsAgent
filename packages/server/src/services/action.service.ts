@@ -10,7 +10,7 @@ import {
   SetPaymentOptionsAction,
   PublishAction,
 } from '../types/actions';
-import { whopService } from './whop.service';
+import { whopClient } from '../integrations/whop/WhopClient';
 import { auditService } from './audit.service';
 
 export class ActionService {
@@ -227,29 +227,68 @@ export class ActionService {
       throw new Error('Product is already published');
     }
 
-    // Create or update in Whop
+    // Create or update in Whop using new WhopClient
     let whopProduct;
     if (product.whopProductId) {
-      // Update existing
-      whopProduct = await whopService.updateProduct(product.whopProductId, {
+      // Update existing product in Whop
+      whopProduct = await whopClient.updateProduct(product.whopProductId, {
         name: product.name,
         description: product.description || undefined,
-        pricing: product.pricing ? JSON.parse(product.pricing) : undefined,
       });
-      // Publish
-      whopProduct = await whopService.publishProduct(product.whopProductId);
+      
+      // Set pricing if available
+      if (product.pricing) {
+        const pricing = JSON.parse(product.pricing);
+        await whopClient.setPricing(product.whopProductId, pricing);
+      }
+      
+      // Add metadata (description blocks, FAQs, payment options)
+      const metadata: Record<string, any> = {};
+      if (product.descriptionBlocks) {
+        metadata.descriptionBlocks = JSON.parse(product.descriptionBlocks);
+      }
+      if (product.faqs) {
+        metadata.faqs = JSON.parse(product.faqs);
+      }
+      if (product.paymentOptions) {
+        metadata.paymentOptions = JSON.parse(product.paymentOptions);
+      }
+      if (Object.keys(metadata).length > 0) {
+        await whopClient.addMetadata(product.whopProductId, metadata);
+      }
+      
+      // Publish the product
+      whopProduct = await whopClient.publishProduct(product.whopProductId);
     } else {
-      // Create new
-      whopProduct = await whopService.createProduct({
+      // Create new product in Whop
+      whopProduct = await whopClient.createProduct({
         name: product.name,
         description: product.description || undefined,
       });
-      // Update with additional details
-      whopProduct = await whopService.updateProduct(whopProduct.id, {
-        pricing: product.pricing ? JSON.parse(product.pricing) : undefined,
-      });
-      // Publish
-      whopProduct = await whopService.publishProduct(whopProduct.id);
+      
+      // Set pricing if available
+      if (product.pricing) {
+        const pricing = JSON.parse(product.pricing);
+        await whopClient.setPricing(whopProduct.id, pricing);
+      }
+      
+      // Add metadata (description blocks, FAQs, payment options)
+      const metadata: Record<string, any> = {};
+      if (product.descriptionBlocks) {
+        metadata.descriptionBlocks = JSON.parse(product.descriptionBlocks);
+      }
+      if (product.faqs) {
+        metadata.faqs = JSON.parse(product.faqs);
+      }
+      if (product.paymentOptions) {
+        metadata.paymentOptions = JSON.parse(product.paymentOptions);
+      }
+      if (Object.keys(metadata).length > 0) {
+        await whopClient.addMetadata(whopProduct.id, metadata);
+      }
+      
+      // Publish the product
+      whopProduct = await whopClient.publishProduct(whopProduct.id);
     }
 
     // Update local product with Whop ID and status
