@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User authentication and authorization
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("user") // user | admin | owner
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Product templates for quick product creation
+model ProductTemplate {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  config      String   // JSON string with default config
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Draft products before publishing to Whop
+model Product {
+  id              String   @id @default(uuid())
+  whopProductId   String?  @unique // ID from Whop API after creation
+  name            String
+  description     String?
+  pricing         String   // JSON: { type: 'one_time' | 'recurring', amount: number, interval?: string }
+  descriptionBlocks String? // JSON array of description blocks
+  faqs            String?  // JSON array of FAQ objects
+  paymentOptions  String?  // JSON: payment method settings
+  status          String   @default("draft") // draft | published
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  plans           Plan[]
+  auditLogs       AuditLog[]
+}
+
+// Two-phase commit plans: PLAN → APPROVE → EXECUTE
+model Plan {
+  id            String   @id @default(uuid())
+  productId     String?
+  product       Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  actions       String   // JSON array of actions to execute
+  status        String   @default("pending") // pending | approved | executed | failed | cancelled
+  createdBy     String   @default("system")
+  approvedBy    String?
+  approvedAt    DateTime?
+  executedAt    DateTime?
+  error         String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  auditLogs     AuditLog[]
+}
+
+// Audit log for all API operations
+model AuditLog {
+  id            String   @id @default(uuid())
+  productId     String?
+  product       Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  planId        String?
+  plan          Plan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  
+  action        String   // Action type: create_draft, set_pricing, add_faq, etc.
+  details       String   // JSON with action details
+  status        String   // success | failed | pending
+  error         String?
+  userId        String   @default("system")
+  
+  createdAt     DateTime @default(now())
+}
+
+// Idempotency tracking for API calls
+model IdempotencyKey {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  action      String
+  response    String?  // JSON response from the action
+  status      String   // processing | completed | failed
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expiresAt   DateTime // Keys expire after 24 hours
+}
